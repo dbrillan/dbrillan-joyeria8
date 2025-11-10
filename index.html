@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Abrir en WhatsApp…</title>
+  <meta property="og:title" content="Unirse por WhatsApp">
+  <meta property="og:description" content="Toca para abrir el grupo en WhatsApp">
+  <meta property="og:type" content="website">
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, sans-serif;
+           margin: 0; padding: 2rem; line-height: 1.5; }
+    .card { max-width: 560px; margin: 8vh auto; padding: 1.25rem 1.5rem; border: 1px solid #e5e7eb; border-radius: 12px; }
+    h1 { font-size: 1.25rem; margin: 0 0 0.25rem; }
+    p { margin: 0.25rem 0; }
+    a.btn { display: inline-block; margin-top: 0.75rem; padding: 0.6rem 0.9rem; border-radius: 10px; text-decoration: none; border: 1px solid #d1d5db; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Abrir en WhatsApp…</h1>
+    <p>Si no se abre automáticamente, toca el botón:</p>
+    <p><a id="manual" class="btn" href="#">Abrir manualmente</a></p>
+  </div>
+
+  <script>
+  (function () {
+    var ua = navigator.userAgent || "";
+    var qs = new URLSearchParams(location.search);
+    var code = qs.get("code") || "Ij4nmjUe54jEzNEEiP0tB0"; // <-- INVITE_CODE por defecto (cámbialo si quieres)
+
+    var isAndroid = /Android/i.test(ua);
+    var isFBIAB = /(FBAN|FBAV|FB_IAB)/i.test(ua); // Facebook In-App Browser
+    var isIGIAB = /Instagram/i.test(ua);          // Instagram In-App Browser
+    var isCrawler = /facebookexternalhit|Facebot/i.test(ua); // Preview crawler
+
+    var groupHttp = "https://chat.whatsapp.com/" + encodeURIComponent(code);
+    var fallbackEnc = encodeURIComponent(groupHttp);
+
+    var intentWA  = "intent://chat.whatsapp.com/" + encodeURIComponent(code) +
+                    "#Intent;scheme=https;package=com.whatsapp;S.browser_fallback_url=" + fallbackEnc + ";end";
+    var intentWAB = "intent://chat.whatsapp.com/" + encodeURIComponent(code) +
+                    "#Intent;scheme=https;package=com.whatsapp.w4b;S.browser_fallback_url=" + fallbackEnc + ";end";
+
+    // Botón manual visible
+    var manual = document.getElementById("manual");
+    if (manual) manual.href = groupHttp;
+
+    if (isCrawler) return; // No redirigir a bots de vista previa
+
+    if ((isFBIAB || isIGIAB) && isAndroid) {
+      // 1) Intent a WhatsApp normal
+      location.href = intentWA;
+      // 2) Si no abrió en ~0.9s, intenta Business
+      setTimeout(function(){ location.href = intentWAB; }, 900);
+      // 3) Fallback final al link HTTP del grupo
+      setTimeout(function(){ location.href = groupHttp; }, 1800);
+    } else {
+      // iOS o fuera del WebView: el link oficial funciona
+      location.href = groupHttp;
+    }
+  })();
+  </script>
+</body>
+</html>
